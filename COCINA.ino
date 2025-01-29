@@ -3,6 +3,8 @@ float SET_temperature = 29.0;
 float DHT_humedad;
 float DHT_temperature;
 float MAX6675_temperature;
+float tempMax = 50;
+float tempMin = 10;
 
 // Librerías
 #include <max6675.h>
@@ -53,6 +55,8 @@ void loop() {
   DHT_temperature = dht.readTemperature();
   MAX6675_temperature = thermocouple.readCelsius();
 
+  
+
   Serial.println(DHT_humedad);
   Serial.println(DHT_temperature);
   Serial.println(MAX6675_temperature);
@@ -77,8 +81,15 @@ void handleClient(EthernetClient client) {
   // Procesar solicitudes de botones
   if (request.indexOf("GET /incrementar") >= 0) {
     SET_temperature += 0.5;
+    
+    if (SET_temperature > tempMax) {  // Límite máximo
+      SET_temperature = tempMax;
+    }
   } else if (request.indexOf("GET /decrementar") >= 0) {
     SET_temperature -= 0.5;
+     if (SET_temperature < tempMin) {  // Límite mínimo
+    SET_temperature = tempMin;
+  }
   }
 
   // Enviar respuesta HTML
@@ -94,8 +105,8 @@ void handleClient(EthernetClient client) {
   client.print("<style>");
   client.print("body { background-color: #E5E7E9; color: #333; font-family: Arial, sans-serif; }");
   client.print("h1, h2 { text-align: center; }");
-  client.print(".data { text-align: center; font-size: 1.5em; }");
-  client.print(".buttons { text-align: center; margin-top: 20px; }");
+  client.print(".data { text-align: center ; font-size: 1.5em; }");
+  client.print(".buttons { text-align: center; margin-top: 50px; }");
   client.print("button { padding: 10px 20px; font-size: 1em; }");
   client.print("</style>");
   client.print("</head>");
@@ -114,6 +125,12 @@ void handleClient(EthernetClient client) {
   client.print("<p><b>Humedad:</b> ");
   client.print(DHT_humedad);
   client.print(" %</p>");
+  client.print("<p><b>Temperatura Máxima:</b> ");
+  client.print(tempMax);
+  client.print(" °C</p>");
+  client.print("<p><b>Temperatura Mínima:</b> ");
+  client.print(tempMin);
+  client.print(" °C</p>");
   client.print("<div class=\"buttons\">");
   client.print("<form action=\"/incrementar\" method=\"GET\" style=\"display:inline;\">");
   client.print("<button type=\"submit\">Aumentar</button>");
